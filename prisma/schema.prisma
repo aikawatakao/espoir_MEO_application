@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  settings    String?  // JSON string for settings
+
+  // Google Business Profile Integration
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleAccountId    String?
+  googleLocationId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reviews   Review[]
+  surveys   Survey[]
+  coupons   Coupon[]
+}
+
+model Review {
+  id             String   @id @default(cuid())
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id])
+  rating         Int
+  author         String
+  date           DateTime
+  text           String
+  language       String?  @default("ja")
+  translatedText String?
+  replyText      String?
+  replied        Boolean  @default(false)
+  repliedAt      DateTime?
+  flagStatus     String   @default("none") // none, pending, resolved
+  tags           Tag[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Tag {
+  id       String   @id @default(cuid())
+  name     String
+  reviews  Review[]
+}
+
+model Survey {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  title     String
+  questions String   // JSON string
+  status    String   @default("draft") // published, draft, stopped
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  responses SurveyResponse[]
+}
+
+model SurveyResponse {
+  id        String   @id @default(cuid())
+  surveyId  String
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  answers   String   // JSON string
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  title       String
+  description String
+  probability Int      // 0-100
+  validDays   Int      @default(30)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
