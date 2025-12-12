@@ -31,8 +31,11 @@ export const listLocations = async (accessToken: string, accountName: string) =>
     // accountName format: "accounts/{accountId}"
     const response = await mybusinessbusinessinformation.accounts.locations.list({
         parent: accountName,
-        readMask: 'name,title,storeCode',
+        pageSize: 100,
+        // readMask: 'name,title,storeCode', // Commenting out to ensure we get data
     });
+
+    console.log(`[GoogleLib] Fetched ${response.data.locations?.length || 0} locations for ${accountName}`);
 
     return response.data.locations || [];
 };

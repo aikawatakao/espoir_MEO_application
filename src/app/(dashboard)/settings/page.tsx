@@ -105,6 +105,7 @@ export default function SettingsPage() {
     };
 
     const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+    const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
     // Fetch locations when googleLinked is true
     useEffect(() => {
@@ -114,6 +115,7 @@ export default function SettingsPage() {
                 .then(async res => {
                     if (!res.ok) {
                         const err = await res.json();
+                        if (err.debugLogs) setDebugInfo(err.debugLogs);
                         throw new Error(err.details || res.statusText);
                     }
                     return res.json();
@@ -121,6 +123,9 @@ export default function SettingsPage() {
                 .then(data => {
                     if (data.locations) {
                         setAvailableLocations(data.locations);
+                    }
+                    if (data.debugLogs) {
+                        setDebugInfo(data.debugLogs);
                     }
                 })
                 .catch(err => {
@@ -379,10 +384,20 @@ export default function SettingsPage() {
         setReportEmails(newEmails);
     };
 
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return null; // Or a loading spinner
+    }
+
     return (
         <div className="space-y-6 p-6">
             <div>
                 <h1 className="mb-2 text-3xl">設定</h1>
+
                 <p className="text-muted-foreground">
                     店舗情報と連携設定を管理します
                 </p>
@@ -501,6 +516,18 @@ export default function SettingsPage() {
                                 <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
                                     管理可能な店舗(Googleビジネスプロフィール)が見つかりませんでした。<br />
                                     Googleアカウントにビジネスプロフィールの管理権限があるかご確認ください。
+                                </div>
+                            )}
+
+                            {/* Debug Info */}
+                            {(availableLocations.length === 0 && debugInfo.length > 0) && (
+                                <div className="mt-4 p-3 border rounded-md bg-slate-50 text-xs font-mono text-slate-700">
+                                    <p className="font-bold mb-1">デバッグ情報:</p>
+                                    <ul className="list-disc pl-4 space-y-1">
+                                        {debugInfo.map((Log, i) => (
+                                            <li key={i}>{Log}</li>
+                                        ))}
+                                    </ul>
                                 </div>
                             )}
                         </div>
