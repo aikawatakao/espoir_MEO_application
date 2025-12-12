@@ -11,22 +11,22 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Create or get a mock store
-        const mockStoreId = "store-1"; // Assuming this exists or we create it
-        // Or better, check if any store exists, if not create one
+        // Check if any store exists to use as dev user
         let store = (await db.select().from(stores).limit(1))[0];
 
         if (!store) {
-            // Create mock store
+            // Create mock store if none exists
             const newStore = await db.insert(stores).values({
-                name: "Dev Store",
                 id: "dev-store-001",
+                name: "Dev Store",
+                email: "dev@example.com",
+                password: "dev-password",
                 googleAccessToken: "mock-token",
                 googleRefreshToken: "mock-refresh",
                 googleAccountId: "mock-account",
                 googleLocationId: "locations/mock-location-id"
-            }).returning())[0];
-            store = newStore;
+            }).returning();
+            store = newStore[0];
         }
 
         const cookieStore = await cookies();
