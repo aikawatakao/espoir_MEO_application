@@ -42,7 +42,7 @@ export async function GET(request: Request) {
                             const googleId = gReview.name; // Resource name as ID
                             if (!googleId) continue;
 
-                            const existing = await db.select().from(reviewsTable).where(eq(reviewsTable.id, googleId)).get();
+                            const existing = (await db.select().from(reviewsTable).where(eq(reviewsTable.id, googleId)).limit(1))[0];
 
                             if (!existing) {
                                 try {
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
 
                         if (!googleId) continue;
 
-                        const existing = await db.select().from(reviewsTable).where(eq(reviewsTable.id, googleId)).get();
+                        const existing = (await db.select().from(reviewsTable).where(eq(reviewsTable.id, googleId)).limit(1))[0];
 
                         if (!existing) {
                             try {

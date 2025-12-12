@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         const userInfo = await getUserInfo(tokens.access_token!);
 
         // Check if user exists
-        const existingUser = await db.select().from(stores).where(eq(stores.email, userInfo.email!)).get();
+        const existingUser = (await db.select().from(stores).where(eq(stores.email, userInfo.email!)).limit(1))[0];
 
         let storeId;
 

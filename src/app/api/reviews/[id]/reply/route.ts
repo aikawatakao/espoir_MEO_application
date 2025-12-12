@@ -17,12 +17,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
 
         // Get review and store
-        const review = await db.select().from(reviews).where(eq(reviews.id, id)).get();
+        const review = (await db.select().from(reviews).where(eq(reviews.id, id)).limit(1))[0];
         if (!review) {
             return NextResponse.json({ error: 'Review not found' }, { status: 404 });
         }
 
-        const store = await db.select().from(stores).where(eq(stores.id, storeId)).get();
+        const store = (await db.select().from(stores).where(eq(stores.id, storeId)).limit(1))[0];
 
         // Save to DB
         await db.update(reviews).set({

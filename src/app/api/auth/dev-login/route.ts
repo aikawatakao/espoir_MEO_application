@@ -14,7 +14,7 @@ export async function GET(request: Request) {
         // Create or get a mock store
         const mockStoreId = "store-1"; // Assuming this exists or we create it
         // Or better, check if any store exists, if not create one
-        let store = await db.select().from(stores).limit(1).get();
+        let store = (await db.select().from(stores).limit(1))[0];
 
         if (!store) {
             // Create mock store
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
                 googleRefreshToken: "mock-refresh",
                 googleAccountId: "mock-account",
                 googleLocationId: "locations/mock-location-id"
-            }).returning().get();
+            }).returning())[0];
             store = newStore;
         }
 
