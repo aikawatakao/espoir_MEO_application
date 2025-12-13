@@ -44,6 +44,21 @@ export default function DashboardPage() {
     const [data, setData] = useState<any>(null);
 
     useEffect(() => {
+        // Trigger background sync
+        const syncData = async () => {
+            try {
+                // If we want to target a specific store, we should pass it. 
+                // But the API currently picks from session or first store.
+                // Let's just call it.
+                await fetch('/api/sync', { method: 'POST' });
+            } catch (e) {
+                console.error("Background sync failed", e);
+            }
+        };
+        syncData();
+    }, []);
+
+    useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             try {

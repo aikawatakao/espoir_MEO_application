@@ -15,15 +15,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Store not found' }, { status: 404 });
         }
 
-        // Mock sync logic
-        console.log(`Syncing data for store: ${store.name} (${store.id})`);
+        // Call shared sync logic
+        console.log(`[API] Syncing data for store: ${store.name} (${store.id})`);
 
-        // Simulate updating some data
+        await import('@/lib/sync').then(m => m.syncReviews(store.id));
+
+        // Update last synced timestamp
         await db.update(stores)
             .set({ updatedAt: new Date().toISOString() })
             .where(eq(stores.id, store.id));
 
-        return NextResponse.json({ success: true, message: 'Sync started' });
+        return NextResponse.json({ success: true, message: 'Sync completed' });
     } catch (error) {
         console.error('Error syncing data:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

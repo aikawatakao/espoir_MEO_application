@@ -49,6 +49,23 @@ export async function POST(request: Request) {
             - キーワードを自然な形で文章に盛り込んでください。
             - 顧客への感謝と、意見がサービス向上に役立つことを伝えてください。
             `;
+        } else if (type === "review_draft") {
+            const { q1, q2, q3, storeName } = context;
+            prompt = `
+            あなたは顧客として「${storeName}」を利用しました。以下のアンケート回答に基づいて、Googleマップに投稿するための口コミ文章を作成してください。
+            
+            アンケート回答:
+            - Q1詳細: ${q1}
+            - Q2よかった点(オプション): ${Array.isArray(q2) ? q2.join(", ") : q2}
+            - Q3感想(自由記述): ${q3}
+            
+            条件:
+            - 日本語で記述してください。
+            - 自然な口調（丁寧語・敬語）で書いてください。
+            - 回答内容を反映し、具体的で好意的な内容にしてください。
+            - 200文字〜400文字程度でまとめてください。
+            - 末尾に「ありがとうございました！」などの感謝の言葉を添えてください。
+            `;
         } else {
             return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
         }

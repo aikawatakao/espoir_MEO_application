@@ -17,6 +17,25 @@ export async function GET(request: Request) {
         const result = await db.select().from(stores).where(eq(stores.id, storeId));
         const store = result[0];
 
+
+        // DEMO MODE CHECK
+        if (process.env.DEMO_MODE === 'true') {
+            console.log('[API] Locations: Returning Mock Data (Demo Mode)');
+            const mockLocations = [
+                {
+                    name: "locations/mock-location-1",
+                    title: "渋谷本店 (Demo)",
+                    storeCode: "DEMO-001"
+                },
+                {
+                    name: "locations/mock-location-2",
+                    title: "大阪支店 (Demo)",
+                    storeCode: "DEMO-002"
+                }
+            ];
+            return NextResponse.json({ locations: mockLocations, debugLogs: ["Demo Mode Active"] });
+        }
+
         if (!store || !store.googleAccessToken) {
             return NextResponse.json({ error: 'Google account not linked' }, { status: 400 });
         }

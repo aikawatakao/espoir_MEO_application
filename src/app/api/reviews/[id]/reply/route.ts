@@ -31,27 +31,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             repliedAt: new Date().toISOString()
         }).where(eq(reviews.id, id));
 
-        // Post to Google if linked
+        // Post to Google if linked and NOT in Demo Mode
         if (store && store.googleAccessToken) {
-            try {
-                // If the review ID is a Google Review ID (which we store in ID now), we can reply directly.
-                // Or we need to store the resource name.
-                // Google API needs `accounts/{accountId}/locations/{locationId}/reviews/{reviewId}`.
-                // If `id` is just reviewId, we need to construct the parent.
-                // But we don't have the parent path stored in review?
-                // We should store `googleReviewName` in DB or construct it.
-                // `googleLocationId` is in store. `googleAccountId` is... we can list accounts.
-                // Optimally we'd store the full resource name in the review record.
-                // For now, let's assume `id` IS the resource name IF it comes from Google.
-                // Or if it's a UUID, it's a mock.
-                // If it contains "accounts/", it's a Google ID.
+            if (process.env.DEMO_MODE === 'true') {
+                console.log(`[API] Reply: Skipping Google API call (Demo Mode) for review ${id}`);
+                // Demo mode logic: just success
+            } else {
+                try {
+                    // If the review ID is a Google Review ID (which we store in ID now), we can reply directly.
+                    // Or we need to store the resource name.
+                    // Google API needs `accounts/{accountId}/locations/{locationId}/reviews/{reviewId}`.
+                    // If `id` is just reviewId, we need to construct the parent.
+                    // But we don't have the parent path stored in review?
+                    // We should store `googleReviewName` in DB or construct it.
+                    // `googleLocationId` is in store. `googleAccountId` is... we can list accounts.
+                    // Optimally we'd store the full resource name in the review record.
+                    // For now, let's assume `id` IS the resource name IF it comes from Google.
+                    // Or if it's a UUID, it's a mock.
+                    // If it contains "accounts/", it's a Google ID.
 
-                if (review.id.includes('accounts/')) {
-                    await replyToReview(store.googleAccessToken, review.id, replyText);
+                    if (review.id.includes('accounts/')) {
+                        await replyToReview(store.googleAccessToken, review.id, replyText);
+                    }
+                } catch (e) {
+                    console.error('Failed to post reply to Google:', e);
+                    // Return success but warn?
                 }
-            } catch (e) {
-                console.error('Failed to post reply to Google:', e);
-                // Return success but warn?
             }
         }
 
