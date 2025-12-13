@@ -23,6 +23,7 @@ export const getAuthUrl = () => {
         access_type: 'offline',
         scope: scopes,
         include_granted_scopes: true,
+        prompt: 'consent',
     });
 };
 
