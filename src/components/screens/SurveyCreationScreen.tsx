@@ -572,9 +572,9 @@ export function SurveyCreationScreen({ mode = "new", surveyId, initialData }: Su
                                     {question.options.map((option, optIndex) => (
                                         <div key={optIndex} className="flex gap-2">
                                             <Input
-                                                key={`${optIndex}-${option}`} // Force re-creation when option changes
+                                                key={optIndex}
                                                 placeholder={`選択肢 ${optIndex + 1}`}
-                                                defaultValue={option}
+                                                value={option}
                                                 onChange={(e) =>
                                                     handleUpdateOption(question.id, optIndex, e.target.value)
                                                 }
