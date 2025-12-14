@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         const { type, context } = body;
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         let prompt = "";
 
@@ -50,7 +50,15 @@ export async function POST(request: Request) {
             - 顧客への感謝と、意見がサービス向上に役立つことを伝えてください。
             `;
         } else if (type === "review_draft") {
-            const { q1, q2, q3, storeName } = context;
+            const { q1, q2, q3, storeName, language } = context;
+            const langName = {
+                'ja': '日本語',
+                'en': 'English',
+                'ko': 'Korean',
+                'zh-CN': 'Simplified Chinese',
+                'zh-TW': 'Traditional Chinese'
+            }[language as string] || '日本語';
+
             prompt = `
             あなたは顧客として「${storeName}」を利用しました。以下のアンケート回答に基づいて、Googleマップに投稿するための口コミ文章を作成してください。
             
@@ -60,11 +68,31 @@ export async function POST(request: Request) {
             - Q3感想(自由記述): ${q3}
             
             条件:
-            - 日本語で記述してください。
-            - 自然な口調（丁寧語・敬語）で書いてください。
+            - **${langName}**で記述してください。
+            - 自然な口調で書いてください。
             - 回答内容を反映し、具体的で好意的な内容にしてください。
             - 200文字〜400文字程度でまとめてください。
-            - 末尾に「ありがとうございました！」などの感謝の言葉を添えてください。
+            `;
+        } else if (type === "translate_survey") {
+            const { survey, targetLanguage } = context;
+            const langName = {
+                'en': 'English',
+                'ko': 'Korean',
+                'zh-CN': 'Simplified Chinese',
+                'zh-TW': 'Traditional Chinese'
+            }[targetLanguage as string];
+
+            if (!langName) {
+                return NextResponse.json({ error: 'Unsupported language' }, { status: 400 });
+            }
+
+            prompt = `
+            You are a professional translator. Translate the following survey JSON object into ${langName}.
+            Evaluate the JSON structure and only translate the values of "title", "label", "options" fields.
+            Do NOT change any keys or structure. Return ONLY the valid JSON string.
+
+            Original JSON:
+            ${JSON.stringify(survey)}
             `;
         } else {
             return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
@@ -72,7 +100,12 @@ export async function POST(request: Request) {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+        let text = response.text();
+        console.log('AI Raw Response:', text);
+
+        // Clean up markdown code blocks if present
+        text = text.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
+        console.log('AI Clean Response:', text);
 
         return NextResponse.json({ text });
 
